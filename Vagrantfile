@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# if editing this file, use 'vagrant reload --provision' afterwards
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -15,14 +17,14 @@ Vagrant.configure("2") do |config|
 
   config.vm.box = "bento/ubuntu-16.04"
 
-  # disable default sync
-  config.vm.synced_folder ".", "/vagrant", disabled: true
+  # # disable default sync
+  # config.vm.synced_folder ".", "/vagrant", disabled: true
 
-  # set up more reasonable shared location
-  config.vm.synced_folder "source/", "/home/vagrant/source"
+  # # set up more reasonable shared location
+  # config.vm.synced_folder ".", "/home/vagrant"
 
   config.vm.provision "shell" do |prov|
-    prov.inline = "/vagrant/bootstrap.sh"
+    prov.inline = "/vagrant/provision_vm.sh"
     prov.privileged = true
   end
 
