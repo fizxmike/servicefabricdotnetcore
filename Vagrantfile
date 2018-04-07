@@ -28,6 +28,9 @@ Vagrant.configure("2") do |config|
     prov.privileged = true
   end
 
+  # serfice fabric admin interface 19080
+  config.vm.network "forwarded_port", guest: 19080, host: 19080
+
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.

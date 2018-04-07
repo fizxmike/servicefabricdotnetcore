@@ -37,5 +37,11 @@ sudo apt-get update
 sudo echo "servicefabric servicefabric/accepted-eula-ga select true" | debconf-set-selections
 sudo echo "servicefabricsdkcommon servicefabricsdkcommon/accepted-eula-ga select true" | debconf-set-selections
 
-# finally, the thing(s) we needed: ServiceFabricSDKCommon
+# The thing(s) we needed: ServiceFabricSDKCommon
 sudo apt-get install -y servicefabricsdkcommon servicefabric lttng-modules-dkms
+
+# Also sfctl (Service Fabric Control CLI)
+sudo apt-get install -y python3
+sudo apt-get install -y python3-pip
+sudo pip3 install --upgrade pip
+sudo -H pip3 install sfctl
