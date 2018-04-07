@@ -40,7 +40,10 @@ sudo echo "servicefabricsdkcommon servicefabricsdkcommon/accepted-eula-ga select
 # The thing(s) we needed: ServiceFabricSDKCommon
 sudo apt-get install -y servicefabricsdkcommon servicefabric lttng-modules-dkms
 
-# Also sfctl (Service Fabric Control CLI)
+# Setup the dev cluser
+sudo /opt/microsoft/sdk/servicefabric/common/clustersetup/devclustersetup.sh
+
+# Also install sfctl (Service Fabric Control CLI)
 sudo apt-get install -y python3
 sudo apt-get install -y python3-pip
 sudo pip3 install --upgrade pip

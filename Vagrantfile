@@ -24,7 +24,7 @@ Vagrant.configure("2") do |config|
   # config.vm.synced_folder ".", "/home/vagrant"
 
   config.vm.provision "shell" do |prov|
-    prov.inline = "/vagrant/provision_vm.sh"
+    prov.inline = "/vagrant/provisioning/provision.sh"
     prov.privileged = true
   end
 
