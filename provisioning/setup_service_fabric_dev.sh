@@ -9,42 +9,85 @@
 ## The "magic" script
 # sudo curl -s https://raw.githubusercontent.com/Azure/service-fabric-scripts-and-templates/master/scripts/SetupServiceFabric/SetupServiceFabric.sh | sudo bash
 
-## Alternatively, it's nice to see what's happening...
+## the contents of above were pasted below ##
 
-# pre-reqs
-sudo apt-get install -y curl lsb-release software-properties-common apt-transport-https
+#
+# This script installs and sets up the Service Fabric Runtime and Common SDK.
+# It also sets up Azure Service Fabric CLI
+#
+# Usage: sudo ./SetupServiceFabric.sh
+#
 
-# Add the Service Fabric repo to your sources list.
-sudo echo "deb [arch=amd64] http://apt-mo.trafficmanager.net/repos/servicefabric/ xenial main" > /etc/apt/sources.list.d/servicefabric.list
+if [ "$EUID" -ne 0 ]; then
+    echo Please run this script as root or using sudo
+    exit
+fi
 
-# Add the dotnet repo to your sources list.
-sudo echo "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ xenial main" > /etc/apt/sources.list.d/dotnetdev.list
+ExitIfError()
+{
+    if [ $1 != 0 ]; then
+        echo "$2" 1>&2
+        exit -1
+    fi
+}
 
-# Add docker repo
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+Distribution=`lsb_release -cs`
+if [ "xenial" != "$Distribution" ]; then
+    echo "Service Fabric is not supported on $Distribution"
+    exit -1
+fi
 
-# Add the new Gnu Privacy Guard (GnuPG, or GPG) key to your APT keyring.
-sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 417A0893
+#
+# Add the service fabric repo and dependents to the sources list.
+# Also add the corresponding keys.
+#
+sh -c 'echo "deb [arch=amd64] http://apt-mo.trafficmanager.net/repos/servicefabric/ xenial main" > /etc/apt/sources.list.d/servicefabric.list'
+ExitIfError $?  "Error@$LINENO: Could not add Service Fabric repo to sources."
 
-# Add the official Docker GPG key to your APT keyring
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sh -c 'echo "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ xenial main" > /etc/apt/sources.list.d/dotnetdev.list'
+ExitIfError $?  "Error@$LINENO: Could not add Dotnet repo to sources."
 
-# load above repos into cache
-sudo apt-get update
+apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
+ExitIfError $?  "Error@$LINENO: Failed to add key for Service Fabric repo"
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 417A0893
+ExitIfError $?  "Error@$LINENO: Failed to add key for dotnet repo"
 
-# allow for automated EULA acceptance
-sudo echo "servicefabric servicefabric/accepted-eula-ga select true" | debconf-set-selections
-sudo echo "servicefabricsdkcommon servicefabricsdkcommon/accepted-eula-ga select true" | debconf-set-selections
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+ExitIfError $?  "Error@$LINENO: Failed to add key for docker repo"
 
-# The thing(s) we needed: ServiceFabricSDKCommon
-sudo apt-get install -y servicefabricsdkcommon servicefabric lttng-modules-dkms
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+ExitIfError $?  "Error@$LINENO: Failed to add Docker repo to sources."
 
-# Setup the dev cluser
+apt-get update
+
+
+#
+# Install Service Fabric SDK.
+#
+
+echo "servicefabric servicefabric/accepted-eula-ga select true" | debconf-set-selections
+echo "servicefabricsdkcommon servicefabricsdkcommon/accepted-eula-ga select true" | debconf-set-selections
+
+apt-get install servicefabricsdkcommon -f -y
+ExitIfError $?  "Error@$LINENO: Failed to install Service Fabric SDK"
+
+
+#
+# Setup Azure Service Fabric CLI
+#
+
+apt-get install python -f -y
+ExitIfError $?  "Error@$LINENO: Failed to install python for sfctl setup."
+
+apt-get install python-pip -f -y
+ExitIfError $?  "Error@$LINENO: Failed to install pip for sfctl setup."
+
+pip install sfctl
+ExitIfError $?  "Error@$LINENO: sfctl installation failed."
+
+export PATH=$PATH:$HOME/.local/bin/
+
+echo "Successfully completed Service Fabric SDK installation and setup."
+
+## don't forget to setup service fabric cluster ##
 sudo /opt/microsoft/sdk/servicefabric/common/clustersetup/devclustersetup.sh
-
-# Also install sfctl (Service Fabric Control CLI)
-sudo apt-get install -y python3
-sudo apt-get install -y python3-pip
-sudo pip3 install --upgrade pip
-sudo -H pip3 install sfctl

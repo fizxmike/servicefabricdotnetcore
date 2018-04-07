@@ -1,3 +1,6 @@
 [submodule "service-fabric-dotnet-core-getting-started"]
 	path = service-fabric-dotnet-core-getting-started
 	url = https://github.com/Azure-Samples/service-fabric-dotnet-core-getting-started.git
+[submodule "service-fabric-dotnet-getting-started"]
+	path = service-fabric-dotnet-getting-started
+	url = https://github.com/Azure-Samples/service-fabric-dotnet-getting-started.git
